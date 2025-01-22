@@ -70,7 +70,7 @@ public class SqlMonitorInterceptor implements Interceptor {
 		Object target = invocation.getTarget();
         if (target instanceof StatementHandler statementHandler) {
 			// 替换空格、制表符、换页符
-			String sql = getSql(statementHandler).replaceAll("\\s+", SPACE);
+			String sql = getSql(statementHandler);
             System.out.println("=====>>>>>>>>>>>>" + sql);
         }
 		return obj;
