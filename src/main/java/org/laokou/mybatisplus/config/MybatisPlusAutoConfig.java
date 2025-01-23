@@ -17,12 +17,16 @@
 
 package org.laokou.mybatisplus.config;
 
+import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.autoconfigure.ConfigurationCustomizer;
+import com.baomidou.mybatisplus.extension.parser.JsqlParserGlobal;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.BlockAttackInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.TenantLineInnerInterceptor;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,6 +35,10 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionOperations;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import javax.sql.DataSource;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 /**
  * mybatis-plus配置.
  *
@@ -38,6 +46,12 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 @Configuration
 public class MybatisPlusAutoConfig {
+
+
+    static {
+        JsqlParserGlobal.setJsqlParseCache(new FurySerialCaffeineJsqlParseCache(
+                Caffeine.newBuilder().maximumSize(4096).expireAfterWrite(10, TimeUnit.MINUTES).build(), Executors.newVirtualThreadPerTaskExecutor(), true));
+    }
 
 
 	// @formatter:off
@@ -51,7 +65,7 @@ public class MybatisPlusAutoConfig {
 	// @formatter:on
 	@Bean
 	@ConditionalOnMissingBean(MybatisPlusInterceptor.class)
-	public MybatisPlusInterceptor mybatisPlusInterceptor() {
+	public MybatisPlusInterceptor mybatisPlusInterceptor(DataSource dataSource) {
 		MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
         // 多租户插件
         interceptor.addInnerInterceptor(new TenantLineInnerInterceptor(new GlobalTenantLineHandler()));
@@ -63,15 +77,6 @@ public class MybatisPlusAutoConfig {
 		interceptor.addInnerInterceptor(new BlockAttackInnerInterceptor());
 		return interceptor;
 	}
-
-    @Bean
-    public ConfigurationCustomizer slowSqlConfigurationCustomizer() {
-        return configuration -> {
-            // 慢SQL
-            SqlMonitorInterceptor sqlMonitorInterceptor = new SqlMonitorInterceptor();
-            configuration.addInterceptor(sqlMonitorInterceptor);
-        };
-    }
 
 	@Bean(name = "transactionTemplate")
 	@ConditionalOnMissingBean(TransactionOperations.class)

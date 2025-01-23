@@ -21,7 +21,11 @@ public class BugApp implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         System.out.println(userMapper.selectList(Wrappers.lambdaQuery(User.class).eq(User::getName, "laokou")
-                .eq(User::getId, 1).eq(User::getTenantId, 0)));
+                .eq(User::getId, 1)));
         System.out.println(userMapper.selectList(Wrappers.emptyWrapper()));
+        System.out.println(userMapper.selectList(Wrappers.lambdaQuery(User.class).eq(User::getName, "laokou")
+                .eq(User::getId, 1)));
+        System.out.println(userMapper.selectList(Wrappers.lambdaQuery(User.class).eq(User::getName, "laokou")
+                .eq(User::getId, 1)));
     }
 }

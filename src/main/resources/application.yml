@@ -14,3 +14,7 @@ spring:
   sql:
     init:
       data-locations: classpath:db/schema.sql
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
